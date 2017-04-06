@@ -5,8 +5,6 @@ window.onload = function() {
     var scoreText;
     var witches;
     var lastWitch = new Date();
-    // This is to help with lag.
-    game.forceSingleUpdate = true;
 
     function preload() {
         game.load.image('sky', 'assets/sky.png');
@@ -70,7 +68,8 @@ window.onload = function() {
 
         witches = game.add.group();
         witches.enableBody = true;
-
+        jumping = false;
+        hit = false;
     }
 
     function update() {
@@ -78,19 +77,35 @@ window.onload = function() {
         var hitPlatform = game.physics.arcade.collide(player, platforms);
 
         //  Reset the players velocity (movement)
-        player.body.velocity.x = 0;
+        if (!cursors.left.isDown || !cursors.right.isDown || !jumping)
+        {
+            player.body.velocity.x = player.body.velocity.x * 0.8;
+        }
 
         if (cursors.left.isDown)
         {
             //  Move to the left
-            player.body.velocity.x = -150;
+            if (player.body.velocity.x != -150)
+            {
+                player.body.velocity.x += -25;
+            }
+            else{
+                player.body.velocity.x += -10;
+            }
 
             player.animations.play('left');
         }
         else if (cursors.right.isDown)
         {
             //  Move to the right
-            player.body.velocity.x = 150;
+
+            if (player.body.velocity.x != 150)
+            {
+                player.body.velocity.x += 25;
+            }
+            else{
+                player.body.velocity.x += 10;
+            }
 
             player.animations.play('right');
         }
@@ -102,9 +117,28 @@ window.onload = function() {
         }
 
         //  Allow the player to jump if they are touching the ground.
-        if (cursors.up.isDown && player.body.touching.down && hitPlatform)
+        if (cursors.up.isDown)
         {
-            player.body.velocity.y = -350;
+            if (player.body.touching.down && hitPlatform)
+            {
+                jumpspeed = 30;
+                jumping = true;
+                player.body.velocity.y = -150;
+            }
+            if (player.body.velocity.y  > -300 && jumping)
+            {
+                player.body.velocity.y -= jumpspeed;
+                jumpspeed = jumpspeed * 0.99;
+                if (player.body.velocity.y < -300)
+                {
+                    jumping = false;
+                }
+            }
+        }
+
+        if (!cursors.up.isDown)
+        {
+            jumping = false
         }
 
         game.physics.arcade.collide(stars, platforms);
@@ -159,8 +193,11 @@ window.onload = function() {
     }
 
     function endGame() {
+        while (1 == 1)
+        {
+            player.y += 1;
+        }
         game.lockRender = true;
     }
-
 
 }
