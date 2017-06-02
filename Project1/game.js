@@ -83,8 +83,11 @@ var mainState = {
                 }
                 // Create a enemy and add it to the 'enemies' group
                 else if (level[i][j] == '@') {
-                    var b_enemy = game.add.sprite(30+20*j, 30+20*i, 'b_enemy');
-                    this.b_enemies.add(enemy);
+                    var b_enemy = game.add.sprite(30+20*j, 30+20*i, 'b_enemy',4);
+                    game.physics.enable(b_enemy, Phaser.Physics.ARCADE);
+                    b_enemy.body.collideWorldBounds = true;
+                    b_enemy.body.bounce.setTo(1, 1);
+                    this.b_enemies.add(b_enemy);
                 }
             }
         }
@@ -95,7 +98,9 @@ var mainState = {
 
 
         // Make the b_enemies and the walls collide
-        game.physics.arcade.collide(this.b_enemy, this.walls);
+        game.physics.arcade.collide(this.b_enemies, this.player);
+        game.physics.arcade.collide(this.b_enemies, this.walls);
+        game.physics.arcade.collide(this.b_enemies, this.enemy);
 
         // Make the player and the walls collide
         game.physics.arcade.collide(this.player, this.walls);
