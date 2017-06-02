@@ -19,6 +19,7 @@ var mainState = {
         game.load.image('wall', 'assets/wall.png');
         game.load.image('coin', 'assets/coin.png');
         game.load.image('enemy', 'assets/enemy.png');
+        game.load.image('b_enemy', 'assets/b_enemy.png')
     },
 
     create: function() {
@@ -44,13 +45,14 @@ var mainState = {
         this.walls = game.add.group();
         this.coins = game.add.group();
         this.enemies = game.add.group();
+        this.b_enemies = game.add.group();
 
         // Design the level. x = wall, o = coin, ! = lava.
         var level = [
             'xxxxxxxxxxxxxxxxxxxxxx',
             '!         !          x',
             '!                 o  x',
-            '!         o          x',
+            '!   @     o          x',
             '!                    x',
             '!     o   !    x     x',
             'xxxxxxxxxxxxxxxx!!!!!x',
@@ -79,12 +81,21 @@ var mainState = {
                     var enemy = game.add.sprite(30+20*j, 30+20*i, 'enemy');
                     this.enemies.add(enemy);
                 }
+                // Create a enemy and add it to the 'enemies' group
+                else if (level[i][j] == '@') {
+                    var b_enemy = game.add.sprite(30+20*j, 30+20*i, 'b_enemy');
+                    this.b_enemies.add(enemy);
+                }
             }
         }
     },
 
     update: function() {
         // Here we update the game 60 times per second
+
+
+        // Make the b_enemies and the walls collide
+        game.physics.arcade.collide(this.b_enemy, this.walls);
 
         // Make the player and the walls collide
         game.physics.arcade.collide(this.player, this.walls);
