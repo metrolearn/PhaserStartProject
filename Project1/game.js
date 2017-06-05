@@ -100,7 +100,12 @@ var mainState = {
         // Make the b_enemies and the walls collide
         game.physics.arcade.collide(this.b_enemies, this.player);
         game.physics.arcade.collide(this.b_enemies, this.walls);
-        game.physics.arcade.collide(this.b_enemies, this.enemy);
+        game.physics.arcade.collide(this.b_enemies, this.enemies);
+        game.physics.arcade.collide(this.b_enemies, this.b_enemies);
+        game.physics.arcade.collide(this.b_enemies, this.coins);
+
+        game.physics.arcade.collide(this.walls, this.coins);
+
 
         // Make the player and the walls collide
         game.physics.arcade.collide(this.player, this.walls);
