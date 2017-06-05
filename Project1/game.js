@@ -76,7 +76,7 @@ var mainState = {
                     this.coins.add(coin);
                 }
 
-                // Create a enemy and add it to the 'enemies' group aalskdfjalsdjflaksdjflkasdjfalkdfja;lksdfj;ak;alk
+                // Create a enemy and add it to the 'enemies' group
                 else if (level[i][j] == '!') {
                     var enemy = game.add.sprite(30+20*j, 30+20*i, 'enemy');
                     this.enemies.add(enemy);
