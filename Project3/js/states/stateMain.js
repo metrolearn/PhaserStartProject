@@ -3,15 +3,17 @@ var StateMain = {
 
         game.load.spritesheet("hero", 'images/main/hero_anim.png', 32, 32);
 
-
+        // Preload your sprite images.
         game.load.image("ground", "images/main/ground.png");
         game.load.image("bar", "images/main/powerbar.png");
         game.load.image("block", "images/main/block.png");
 
+        // Preload some sound effect files.
         game.load.audio("jump", "audio/sfx/jump.wav");
         game.load.audio("land", "audio/sfx/land.wav");
         game.load.audio("die", "audio/sfx/die.wav");
 
+        // Preload some images for the background.
         game.load.image("bg0", "images/main/bg0.png");
         game.load.image("bg1", "images/main/bg1.png");
         game.load.image("bg2", "images/main/bg2.png");
@@ -113,14 +115,19 @@ var StateMain = {
 
         this.landed=true;
 
+        this.blockTimer = game.time.events.loop(Phaser.Timer.SECOND * 5, this.makeBlocks, this);
+
+        this.helpText = game.add.text(16, game.height-24, "Hold Left Mouse to jump", { fontSize: '16px', fill: '#FFFFFF' });
+
 
     },
     mouseDown: function() {
+
         if (this.clickLock) {
             return;
         }
 
-        if (this.hero.y != this.startY) {
+        if (!this.landed) {
             return;
         }
 
@@ -174,29 +181,40 @@ var StateMain = {
     },
     makeBlocks: function() {
 
-        // Remove all the blocks from the group before you create more. You don't want to fill up memory.
-        this.blocks.removeAll();
+        var bStartX=game.width, bStartY=game.height-32-64;
+        var rndPos, offset;
 
+        // Always make a block at the top of the screen.
+        offset = game.rnd.integerInRange(0,4);
+        this.makeBlock(bStartX + (offset * this.bwidth), bStartY - ( 6 * this.bheight ));
 
-        var bStartX=game.width, bStartY = game.height- this.gheight - this.bheight;
+        // Always make a block on the ground.
+        offset = game.rnd.integerInRange(0,4);
+        this.makeBlock( bStartX + (offset * 64), bStartY );
 
+        // Fill in a random number of blocks in between.
         var wallHeight=game.rnd.integerInRange(2, 6);
         for (var i = 0; i < wallHeight; i++) {
-            var block = game.add.sprite(bStartX, bStartY - ( i * this.bheight ), "block");
-            this.blocks.add(block);
+            rndPos = game.rnd.integerInRange(0,6);
+            offset = game.rnd.integerInRange(0,6);
+            this.makeBlock( bStartX + (offset * this.bwidth), bStartY - ( rndPos * this.bheight ) );
         }
 
-        // Loop through the blocks and apply physics to each.
-        this.blocks.forEach(function(block) {
-            //enable physics
-            game.physics.enable(block, Phaser.Physics.ARCADE);
+        // The offset variable moves the spawn point for the block a little further back from the normal start point.
+        // It's a random number. Try playing with the integerInRange values to pick a number from, say, 0 through 5 or 1 through 10.
 
-            block.body.allowRotation=false;
-            block.body.immovable = true;
-            block.body.friction.x=0;
-            block.body.velocity.x = -150;
+    },
+    makeBlock: function(x,y){
 
-        });
+        var block = game.add.sprite(x, y, "block");
+
+        game.physics.enable(block, Phaser.Physics.ARCADE);
+        block.body.allowRotation=false;
+        block.body.immovable = true;
+        block.body.friction.x=0;
+        block.body.velocity.x = -128;
+        this.blocks.add(block);
+
     },
     delayOver: function() {
         this.clickLock = true;
@@ -216,17 +234,30 @@ var StateMain = {
         return myArray;
     },
     onGround: function() {
+
         if (this.hero)
         {
             this.hero.animations.play('run');
         }
 
         if(!this.landed){
+
             this.landed=true;
             this.landSound.play();
         }
 
 
+    },
+    collisionHandlerBlock: function(hero,block) {
+
+        // If the hero has collided with the front of the block, end the game.
+        if(hero.x + hero.width <= block.x){
+            // Standard block. Only die if you hit the front of it.
+            this.delayOver();
+        }else{
+            this.onGround();
+        }
+        return true;
     },
     update: function() {
 
@@ -234,14 +265,17 @@ var StateMain = {
         game.physics.arcade.collide(this.hero, this.ground, this.onGround, null, this);
 
 
+        // Check collisions between hero and blocks. If there is a collision, run a special function called collisionHandlerBlock.
+        game.physics.arcade.collide(this.hero, this.blocks, function(obj1,obj2){ this.collisionHandlerBlock(obj1,obj2); }, null, this);
 
-        game.physics.arcade.collide(this.hero, this.blocks, this.delayOver, null, this);
 
-
-        var fchild = this.blocks.getChildAt(0);
-        // If off the screen reset the blocks.
-        if (fchild.x + this.bwidth < 0) {
-            this.makeBlocks();
+        for(var i=0; i<this.blocks.children.length;i++){
+            var fchild = this.blocks.children[i];
+            // The block is part of a group, so the x value is relative the to group x value. I placed the group at 0,0 so this should be irrelevant now.
+            if (fchild.x < 0 - fchild.width || fchild.y>game.height) {
+                fchild.destroy();
+                this.blocks.remove(fchild);
+            }
         }
 
         // Move the backgrounds
@@ -249,7 +283,8 @@ var StateMain = {
         this.bg1.tilePosition.x -= 0.30;
         this.bg2.tilePosition.x -= 0.60;
 
-
+        this.powerBar.y = this.hero.y -20;
+        this.powerBar.x = this.hero.x -20;
 
     }
 }
